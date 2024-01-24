@@ -61,6 +61,28 @@ func TestInvertedIndex(t *testing.T) {
 		idx,
 		NewNotQuery[doc](bazQuery, prefix2Field.Query("ba")),
 	))
+
+	require.True(t, idx.Remove(roo))
+	require.False(t, idx.Remove(roo))
+
+	require.Equal(t, []doc{baz}, query(idx, isEvenField.Query(true)))
+	require.Equal(t, []doc{bar, baz}, query(idx, prefix2Field.Query("ba")))
+	require.Equal(t, []doc{bar}, query(idx, runeField.Query('r')))
+	require.Equal(t, []doc{bar}, query(idx, rooBarQuery))
+	require.Equal(t, []doc(nil), query(
+		idx,
+		NewNotQuery[doc](rooBarQuery, prefix2Field.Query("ba")),
+	))
+
+	require.Equal(t, []doc{baz}, query(idx, bazQuery))
+	require.Equal(t, []doc(nil), query(
+		idx,
+		NewNotQuery[doc](bazQuery, prefix2Field.Query("ba")),
+	))
+
+	// Test empty queries
+	require.Equal(t, []doc(nil), query(idx, OrQuery[doc]{}))
+	require.Equal(t, []doc(nil), query(idx, AndQuery[doc]{}))
 }
 
 func query[DOCUMENT comparable](idx *InvertedIndex[DOCUMENT], query Query[DOCUMENT]) (out []DOCUMENT) {

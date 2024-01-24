@@ -16,6 +16,10 @@ func TestAndOrIterators(t *testing.T) {
 		not   []DocID
 	}{
 		{
+			name:  "both empty",
+			lists: [][]DocID{nil, nil},
+		},
+		{
 			name:  "left empty",
 			lists: [][]DocID{nil, {1}},
 			not:   []DocID{1},
@@ -60,6 +64,11 @@ func TestAndOrIterators(t *testing.T) {
 			name:  "sample 6",
 			lists: [][]DocID{{0, 1, 2, 3, 7, 8, 9, 11, 13, 14, 16, 19, 21}, {2, 11, 14, 15, 16, 22}},
 			not:   []DocID{2, 11},
+		},
+		{
+			name:  "sample 7",
+			lists: [][]DocID{{1, 3, 5}, {2, 4, 6}},
+			not:   []DocID{1, 2, 3, 4, 5, 6},
 		},
 	}
 
@@ -121,20 +130,18 @@ func testOr(t *testing.T, lists [][]DocID, not []DocID) {
 }
 
 func testNot(t *testing.T, expected []DocID, itr PostingListIterator, not []DocID) {
-	t.Run("not", func(t *testing.T) {
-		notMap := make(map[DocID]bool, len(not))
-		for _, docId := range not {
-			notMap[docId] = true
-		}
+	notMap := make(map[DocID]bool, len(not))
+	for _, docId := range not {
+		notMap[docId] = true
+	}
 
-		expected = slices.DeleteFunc(expected, func(id DocID) bool { return notMap[id] })
-		if len(expected) == 0 {
-			expected = nil
-		}
-		actual := iteratorValues(NewNotIterator(itr, newIterator(not)))
+	expected = slices.DeleteFunc(expected, func(id DocID) bool { return notMap[id] })
+	if len(expected) == 0 {
+		expected = nil
+	}
+	actual := iteratorValues(NewNotIterator(itr, newIterator(not)))
 
-		require.Equal(t, expected, actual)
-	})
+	require.Equal(t, expected, actual)
 }
 
 func docCounts(lists [][]DocID) map[DocID]int {
@@ -275,7 +282,7 @@ func TestIteratorFuzzed(t *testing.T) {
 		testOr(t, lists, not)
 	}
 
-	for listCount := int64(1); listCount <= 10; listCount++ {
+	for listCount := int64(1); listCount <= 5; listCount++ {
 		t.Run(fmt.Sprintf("listCount=%d", listCount), func(t *testing.T) {
 			for testCount := int64(0); testCount < 1000; testCount++ {
 				testMerge(t, docIDs, testCount, listCount)

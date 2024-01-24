@@ -1,10 +1,5 @@
 package tinysearch
 
-import (
-	"cmp"
-	"slices"
-)
-
 type QueryBuilder[DOCUMENT, FIELD comparable] func(FIELD) Query[DOCUMENT]
 
 type Query[DOCUMENT comparable] interface {
@@ -33,13 +28,6 @@ func (a AndQuery[DOCUMENT]) iterator(index *InvertedIndex[DOCUMENT]) PostingList
 		iterators[i] = q.iterator(index)
 	}
 
-	if len(iterators) == 0 {
-		return EmptyIterator
-	}
-
-	slices.SortFunc(iterators, func(a, b PostingListIterator) int {
-		return cmp.Compare(a.Len(), b.Len())
-	})
 	iterator := iterators[0]
 	for _, itr := range iterators[1:] {
 		iterator = NewAndIterator(iterator, itr)

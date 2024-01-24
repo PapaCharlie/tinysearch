@@ -5,7 +5,6 @@ import (
 )
 
 type PostingListIterator interface {
-	Len() int
 	Peek() (DocID, bool)
 	Next()
 }
@@ -42,10 +41,6 @@ func (p *listIterator) Next() {
 	if p.Element != nil {
 		p.Element = p.Element.Next()
 	}
-}
-
-func (p *listIterator) Len() int {
-	return p.elements
 }
 
 var _ PostingListIterator = (*andIterator)(nil)
@@ -102,10 +97,6 @@ func (a *andIterator) next() {
 	}
 }
 
-func (a *andIterator) Len() int {
-	return min(a.left.Len(), a.right.Len())
-}
-
 var _ PostingListIterator = (*orIterator)(nil)
 
 func NewOrIterator(left, right PostingListIterator) PostingListIterator {
@@ -150,13 +141,9 @@ func (o *orIterator) Next() {
 		o.left.Next()
 	case rightOk:
 		o.right.Next()
-	case !(leftOk || rightOk):
-		return
+	default:
+		// Technically never called because Peek will return false, preempting the final call to Next
 	}
-}
-
-func (o *orIterator) Len() int {
-	return max(o.left.Len(), o.right.Len())
 }
 
 func NewNotIterator(positive, negative PostingListIterator) PostingListIterator {
@@ -169,10 +156,6 @@ func NewNotIterator(positive, negative PostingListIterator) PostingListIterator 
 
 type notIterator struct {
 	positive, negative PostingListIterator
-}
-
-func (n *notIterator) Len() int {
-	return n.positive.Len()
 }
 
 func (n *notIterator) Peek() (DocID, bool) {

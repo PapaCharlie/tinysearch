@@ -88,6 +88,7 @@ func (idx *InvertedIndex[DOCUMENT]) Remove(doc DOCUMENT) bool {
 		return false
 	}
 
+	delete(idx.docToDocID, doc)
 	for field := range idx.fields {
 		field.extractFieldValues(idx, doc, docID, false)
 	}
