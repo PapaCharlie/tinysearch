@@ -1,6 +1,7 @@
 package tinysearch
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -85,10 +86,6 @@ func TestInvertedIndex(t *testing.T) {
 	require.Equal(t, []doc(nil), query(idx, AndQuery[doc]{}))
 }
 
-func query[DOCUMENT comparable](idx *InvertedIndex[DOCUMENT], query Query[DOCUMENT]) (out []DOCUMENT) {
-	idx.Query(query, func(doc DOCUMENT) bool {
-		out = append(out, doc)
-		return true
-	})
-	return out
+func query[DOCUMENT comparable](idx *InvertedIndex[DOCUMENT], query Query[DOCUMENT]) []DOCUMENT {
+	return slices.Collect(idx.Query(query))
 }

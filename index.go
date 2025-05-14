@@ -1,5 +1,10 @@
 package tinysearch
 
+import (
+	"iter"
+	"maps"
+)
+
 type InvertedIndex[DOCUMENT comparable] struct {
 	fields     map[FieldValueExtractor[DOCUMENT]]any
 	docCount   DocID
@@ -82,6 +87,15 @@ func (idx *InvertedIndex[DOCUMENT]) Add(doc DOCUMENT) bool {
 	return true
 }
 
+func (idx *InvertedIndex[DOCUMENT]) AddAll(docs ...DOCUMENT) (added bool) {
+	for _, doc := range docs {
+		if idx.Add(doc) {
+			added = true
+		}
+	}
+	return added
+}
+
 func (idx *InvertedIndex[DOCUMENT]) Remove(doc DOCUMENT) bool {
 	docID, ok := idx.docToDocID[doc]
 	if !ok {
@@ -96,8 +110,25 @@ func (idx *InvertedIndex[DOCUMENT]) Remove(doc DOCUMENT) bool {
 	return true
 }
 
-func (idx *InvertedIndex[DOCUMENT]) Query(query Query[DOCUMENT], f func(DOCUMENT) bool) {
-	Iterate(query.iterator(idx), func(docID DocID) bool {
-		return f(idx.docIdToDoc[docID])
-	})
+func (idx *InvertedIndex[DOCUMENT]) RemoveAll(docs ...DOCUMENT) (removed bool) {
+	for _, doc := range docs {
+		if idx.Remove(doc) {
+			removed = true
+		}
+	}
+	return removed
+}
+
+func (idx *InvertedIndex[DOCUMENT]) Query(query Query[DOCUMENT]) iter.Seq[DOCUMENT] {
+	return func(yield func(DOCUMENT) bool) {
+		for docID := range Iterate(query.iterator(idx)) {
+			if !yield(idx.docIdToDoc[docID]) {
+				break
+			}
+		}
+	}
+}
+
+func (idx *InvertedIndex[DOCUMENT]) Docs() iter.Seq[DOCUMENT] {
+	return maps.Values(idx.docIdToDoc)
 }

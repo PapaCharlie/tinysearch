@@ -311,12 +311,8 @@ func newPostingList(docIDs ...DocID) *PostingList {
 	return l
 }
 
-func iteratorValues(itr PostingListIterator) (out []DocID) {
-	Iterate(itr, func(docID DocID) bool {
-		out = append(out, docID)
-		return true
-	})
-	return out
+func iteratorValues(itr PostingListIterator) []DocID {
+	return slices.Collect(Iterate(itr))
 }
 
 func newIterator(docs []DocID) PostingListIterator {

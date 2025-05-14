@@ -2,6 +2,7 @@ package tinysearch
 
 import (
 	"container/list"
+	"iter"
 )
 
 type PostingListIterator interface {
@@ -9,14 +10,16 @@ type PostingListIterator interface {
 	Next()
 }
 
-func Iterate(iterator PostingListIterator, f func(docID DocID) bool) {
-	for {
-		docID, ok := iterator.Peek()
-		if !ok || !f(docID) {
-			return
-		}
+func Iterate(iterator PostingListIterator) iter.Seq[DocID] {
+	return func(yield func(DocID) bool) {
+		for {
+			docID, ok := iterator.Peek()
+			if !ok || !yield(docID) {
+				return
+			}
 
-		iterator.Next()
+			iterator.Next()
+		}
 	}
 }
 
