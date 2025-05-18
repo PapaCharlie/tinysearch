@@ -87,8 +87,8 @@ func (idx *InvertedIndex[DOCUMENT]) Add(doc DOCUMENT) bool {
 	return true
 }
 
-func (idx *InvertedIndex[DOCUMENT]) AddAll(docs ...DOCUMENT) (added bool) {
-	for _, doc := range docs {
+func (idx *InvertedIndex[DOCUMENT]) AddAll(docs iter.Seq[DOCUMENT]) (added bool) {
+	for doc := range docs {
 		if idx.Add(doc) {
 			added = true
 		}
@@ -110,8 +110,8 @@ func (idx *InvertedIndex[DOCUMENT]) Remove(doc DOCUMENT) bool {
 	return true
 }
 
-func (idx *InvertedIndex[DOCUMENT]) RemoveAll(docs ...DOCUMENT) (removed bool) {
-	for _, doc := range docs {
+func (idx *InvertedIndex[DOCUMENT]) RemoveAll(docs iter.Seq[DOCUMENT]) (removed bool) {
+	for doc := range docs {
 		if idx.Remove(doc) {
 			removed = true
 		}
